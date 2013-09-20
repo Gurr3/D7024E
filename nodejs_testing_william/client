@@ -1,0 +1,47 @@
+#E:\Program\Arbeit\Python27
+# -*- coding: utf-8 -*-
+import urllib2
+import urllib
+import cookielib
+import socket
+
+#from urllib2 import Request, urlopen, URLError, HTTPError
+
+def push(filename, urlname):
+    try:
+        with open(filename):pass
+    except IOError:
+        print filename + ' does not exist'
+
+    url = 'http://localhost:8080'
+
+    http_header = {
+                "User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.46 Safari/535.11",
+                "Accept" : "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,text/png,*/*;q=0.5",
+                "Accept-Language" : "en-us,en;q=0.5",
+                "Accept-Charset" : "ISO-8859-1",
+                "Content-type": "application/x-www-form-urlencoded",
+                "Host" : "www.mitfahrgelegenheit.de",
+                "Referer" : "http://www.mitfahrgelegenheit.de/mitfahrzentrale/Dresden/Potsdam.html/"
+                }
+    
+    params = {
+        'file' : filename
+    }
+
+    # setup cookie handler
+    cookie_jar = cookielib.LWPCookieJar()
+    cookie = urllib2.HTTPCookieProcessor(cookie_jar)
+
+    # create an urllib2 opener()
+    #opener = urllib2.build_opener(proxy, cookie) # with proxy
+    opener = urllib2.build_opener(cookie) # we are not going to use proxy now
+
+    req = urllib2.Request(url, urllib.urlencode(params), http_header)
+    # submit your request
+    res = opener.open(req)
+    html = res.read()
+        
+    # save retrieved HTML to file
+    open("tmp.html", "w").write(html)
+    print html
