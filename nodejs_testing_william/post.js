@@ -39,7 +39,7 @@ app.get( '/files',function(req,res){
 
 app.post('/', function (req, res) { //saves the file given
 	
-	//console.log(console.dir(req.files));  // DEBUG: display available fields
+	console.log(console.dir(req));  // DEBUG: display available fields
 	//console.log("\n\n "+console.dir(req.files.file.name)+" \n"); //DEBUG: display filename
 	
 	var tmp_path = req.files.file.path,
@@ -66,6 +66,7 @@ app.post('/', function (req, res) { //saves the file given
 			console.log("executing "+new_path);
 			console.log(stdout);
 		}
+		
 	});
 	res.redirect("/files");
 });
