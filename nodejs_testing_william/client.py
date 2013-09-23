@@ -1,6 +1,6 @@
 #E:\Program\Arbeit\Python27
 # -*- coding: utf-8 -*-
-import requests
+import requests #http://www.python-requests.org/en/latest/user/install/
 
 #from urllib2 import Request, urlopen, URLError, HTTPError
 
