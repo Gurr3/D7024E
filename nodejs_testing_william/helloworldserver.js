@@ -1,14 +1,5 @@
 var http = require("http");
 
-function say(word){
-	console.log(word);
-}
-
-function execute( func, value){
-	func(value);
-}
-
-
 if (!module.parent) {
   http.createServer(onRequest).listen(8888)//app.listen(8080);
   console.log('Port', 8888);
