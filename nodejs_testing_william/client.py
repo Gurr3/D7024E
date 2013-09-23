@@ -1,10 +1,5 @@
 #E:\Program\Arbeit\Python27
 # -*- coding: utf-8 -*-
-import urllib2
-import urllib
-import cookielib
-import socket
-import httplib
 import requests
 
 #from urllib2 import Request, urlopen, URLError, HTTPError

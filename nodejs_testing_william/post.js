@@ -39,7 +39,7 @@ app.get( '/files',function(req,res){
 
 app.post('/', function (req, res) { //saves the file given
 	
-	console.log(console.dir(req));  // DEBUG: display available fields
+	//console.log(console.dir(req));  // DEBUG: display available fields
 	//console.log("\n\n "+console.dir(req.files.file.name)+" \n"); //DEBUG: display filename
 	
 	var tmp_path = req.files.file.path,
@@ -59,6 +59,7 @@ app.post('/', function (req, res) { //saves the file given
 			if (err) throw err;
 		});
 	});
+	//Execute the program that was received, this shall later be updated to call a script starting a virtual machine
 	exec("node "+new_path, function(err,stdout,stderr){
 		if(stderr){
 			console.log("error: "+stdout +"\n\n"+stderr);
