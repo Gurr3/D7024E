@@ -13,7 +13,7 @@ def push(filename, urlname):
     files = {'file': open(filename, 'rb')}
     r = requests.post(urlname, files=files)
     r.text
-    
+    print r
 def main():
 
     url = 'http://localhost:8080'
@@ -21,12 +21,5 @@ def main():
 
     r = requests.post(url, files=files)
     r.text
-    
-    # Specify the url
-    #url = 'http://localhost:8080'
-    #form_data = {'files': 'E:\Dropbox\Skola\D7024E\\nodejs_testing_william\helloworldserver.js'}
-    #params = urllib.urlencode(form_data)
-    #response = urllib2.urlopen(url, params)
-    #print response.read()
 
     

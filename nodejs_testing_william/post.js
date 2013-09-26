@@ -44,6 +44,7 @@ app.post('/', function (req, res) { //saves the file given
 	
 	var tmp_path = req.files.file.path,
 		new_path = __dirname+"/files/"+req.files.file.name;
+		//to_send = "";
 	
 	fs.rename(tmp_path,new_path,function(err) {
 		if (err){
@@ -64,11 +65,13 @@ app.post('/', function (req, res) { //saves the file given
 		if(stderr){
 			console.log("error: "+stdout +"\n\n"+stderr);
 		}else{
-			console.log("executing "+new_path);
+			console.log("executing "+new_path+"\nThe Executed program says:\n");
 			console.log(stdout);
+		//	to_send = "The Executed program says:\n"+stdout;
 		}
 		
 	});
+	//res.send(to_send);
 	res.redirect("/files");
 });
 
@@ -82,9 +85,9 @@ app.get('/:file(*)', function(req, res, next){
 			res.write(error + "\n");
 			res.end();
 		} else {
-			res.redirect('http://www.google.se');
-			// res.write(file, "binary");
-			// res.end();
+			//res.redirect('http://www.google.se');
+			res.write(file, "binary");
+			res.end();
 		}
 	});
   //res.download(path);
