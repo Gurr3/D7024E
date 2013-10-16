@@ -1,4 +1,4 @@
-// node dossh.js choosecom deploy 130.240.233.92 8889 files/helloworldserver8889.js
+// node dossh.js choosecom deploy 130.240.233.92 8889 8080 files/helloworldserver8889.js
 
 
 var control = require('control'),
@@ -33,7 +33,7 @@ task('choosecom', 'choose which computer to deploy on', function (args) {
 });
 
 
-task('deploy', 'deploy the program', function (controller, _, remoteport, filename) {
+task('deploy', 'deploy the program', function (controller, _, internal_port, external_port, filename) {
 
 	var dockerfile;
 	//var filename;
@@ -44,7 +44,7 @@ task('deploy', 'deploy the program', function (controller, _, remoteport, filena
 	 controller.ssh( dockerfile, function () {
 				controller.ssh("docker build -t='d/node' .", function(){
 					console.log("docker build done");
-					controller.ssh('docker run -d -p '+remoteport+':'+remoteport+' d/node /bin/bash -c \"nodejs '+filename+'\"');
+					controller.ssh('docker run -d -p '+external_port+':'+internal_port+' d/node /bin/bash -c \"nodejs '+filename+'\"');
 					console.log("docker run done");
 			}); 
 		});
