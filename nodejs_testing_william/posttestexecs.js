@@ -12,7 +12,9 @@ var express = require('express'),
 	async = require("async"),
 	
 	adressarray = [],
+	chosen_port = 8000; //start value
 	this_port = 8080;
+	
 	
 app.use(express.bodyParser({
   uploadDir: __dirname + '/files',
@@ -21,6 +23,11 @@ app.use(express.bodyParser({
 
 function isNumber(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function allocatePort(){
+	chosen_port+=1;
+	return chosen_port-1;
 }
 
 app.get('/', function(req, res){
@@ -88,7 +95,7 @@ app.post('/', function (req, res) { //saves the file given
 	});
 	
 	//update adressarray
-	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0], port, 
+	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0], allocatePort(), 
 		function(res){
 			adressarray=res;
 			//dossh with the new arrayaddition
@@ -96,17 +103,28 @@ app.post('/', function (req, res) { //saves the file given
 			//console.log('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+new_path);
 			
 			setTimeout(function(){
-				exec('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+req.files.file.name, function(err,stdout,stderr){
-					if(stderr){console.log(stderr);}
-					else{console.log(stdout);}
-					})}
+				exec('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+chosen_port+' '+req.files.file.name, 
+					function(err,stdout,stderr){
+						if(stderr){console.log(stderr);}
+						else{console.log(stdout);}
+						var x=1;
+						while (x<parseInt(req.body.instances)){
+							
+							name = req.files.file.name+x.toString;
+							port = allocatePort();
+							filename = req.files.file.name
+							spawn.instances(adressarray, name, port, filename, 
+								function(res){
+									adressarray=res;
+								}
+							);	
+							x=x+1;			
+						}
+					)}
 			,10000);
 		}
 	);
-	var x=0;
-	while (x<parseInt(req.body.instances)){
-		x=x+1;
-		spawn.instances();
+	
 	}
 	//send back a psuedo website
 	res.send('http://'+req.files.file.name.split(".", 1)[0]+'.'+req.host+'.xip.io:'+this_port);
