@@ -1,10 +1,8 @@
 // node dossh.js choosecom deploy 130.240.233.92 8889 8080 files/helloworldserver8889.js
 
-
 var control = require('control'),
     task = control.task,
-	path = require('path'),
-	r_addr = process.argv[2];
+	path = require('path');
 	
 var sq_ip = '130.240.233.77';
 var sq_port= '8080';
@@ -13,9 +11,7 @@ var sq_port= '8080';
 task('choosecom', 'choose which computer to deploy on', function (args) {
 	console.log("all: "+ args +" ip: " + args[1]);
 	var config;
-	console.log("Using server "+args[1]);
 	if (args[1]=='130.240.233.93'){
-		console.log("dossh: 130.240.233.93");
 		config = {'130.240.233.93': {
 			user: 'core',
 			sshOptions: ['-inyckel2.pem'] 
@@ -23,7 +19,6 @@ task('choosecom', 'choose which computer to deploy on', function (args) {
 		
 	//var config = dojson(args[1].toString(), {user : 'core', sshOptions:['incykel2.pem']});
 	}else if(args[1]=='130.240.233.92'){
-		console.log("dossh: 130.240.233.92");
 		config = {'130.240.233.92': {
 				user: 'core',
 				sshOptions: ['-inyckel2.pem'] 
@@ -34,7 +29,7 @@ task('choosecom', 'choose which computer to deploy on', function (args) {
 
 
 task('deploy', 'deploy the program', function (controller, _, internal_port, external_port, filename) {
-
+	console.log(internal_port + '     ' + external_port+'         '+ filename);
 	var dockerfile;
 	//var filename;
 	//filename = "helloworldserver.js"

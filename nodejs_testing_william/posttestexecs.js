@@ -2,17 +2,11 @@ var exec = require("child_process").exec
 var express = require('express'), 
 	app = module.exports = express(),
 	fs = require("fs"),
-	util = require("util"),
-	formidable = require("formidable"),
-	query = require('querystring'),
-	//control = require('control'),
-	//task = control.task,
 	routing = require("./routing"),
-	//dossh = require("./dossh"),
-	async = require("async"),
+	spawn = require("./spawn"),
 	
 	adressarray = [],
-	chosen_port = 8000; //start value
+	chosen_port = 7999, //start value
 	this_port = 8080;
 	
 	
@@ -27,30 +21,32 @@ function isNumber(n) {
 
 function allocatePort(){
 	chosen_port+=1;
-	return chosen_port-1;
+	return chosen_port;
 }
 
 app.get('/', function(req, res){
+
+//psuedo subdomain dns, note that files named only with numbers won't work:
 	if ( !isNumber(req.subdomains[req.subdomains.length-1])){
 		console.log("searching for the adress to reroute: "+req.subdomains[req.subdomains.length-1]);
-		console.log("Adressarray: "+ adressarray);
-		console.log("subdomains: "+req.subdomains);
-		routing.findfilename(adressarray, req.subdomains[req.subdomains.length-1], function(ip_port){console.log("found the adress to reroute");res.redirect('http://'+ip_port);
+		console.log(adressarray);
+		routing.findfilename(adressarray, req.subdomains[req.subdomains.length-1], function(ip_port){
+			
+			console.log("found the adress to: "+ ip_port);
+			res.redirect('http://'+ip_port);
 		});
-		// var new_adress = routing.findfilename(adressarray, req.subdomains[req.subdomains.length-1][0]);
-		//if new_adress isempty send a message telling its nonexistant
-		
-		// res.send('adressarray: '+adressarray+'\n'+req.subdomains[req.subdomains.length-1]+'\n'+'http:'+new_adress);//TODO: test
-	} else{
+
+	} else{ //send form to spawn machines
 		res.send('<form method="post" enctype="multipart/form-data">'
 			+ '<p>file: <input type="file" name="file" /></p>'
-			+ '<p><input type="submit" value="Upload" /></p>'
 			+ '<p>Port: <input type="text" name="port" /></p>'
 			+ '<p>How many instances: <input type="text" name="instances" value="1" /></p>'
+			+ '<p><input type="submit" value="Upload" /></p>'
 			+ '</form>');
 	}
 });
 
+//get a list of contents in /files, the files can be acessed via sererip:port/*filename*
 app.get( '/files',function(req,res){
 
 	var path= __dirname+"/files/";
@@ -70,21 +66,24 @@ app.get( '/files',function(req,res){
 	});
 });
 
+//when submitting the form given from get /
 app.post('/', function (req, res) { //saves the file given
+	
 	console.log("working with post /");
+	var to_send = "";
 	//console.log(console.dir(req));  // DEBUG: display available fields
 	//console.log("\n\n "+console.dir(req.files.file.name)+" \n"); //DEBUG: display filename
 	
 	var tmp_path = req.files.file.path,
 		new_path = __dirname+"/files/"+req.files.file.name;
 		port = req.body.port;
-	
-	fs.rename(tmp_path,new_path,function(err) {
+		
+	fs.rename(tmp_path,new_path,function(err) { //save the file
 		if (err){
 			console.log("rename error, unlinking");
 			fs.unlink(tmp_path);
 			console.log("File already exists");
-			//fs.rename(tmp_path, new_path);
+			//fs.rename(tmp_path, new_path); //do fs again
 			console.log("rename error, finished handling");
 			res.send("File already exists");
 		}
@@ -96,39 +95,41 @@ app.post('/', function (req, res) { //saves the file given
 	
 	//update adressarray
 	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0], allocatePort(), 
-		function(res){
-			adressarray=res;
+		function(array){
+			adressarray=array;
+			
 			//dossh with the new arrayaddition
-			
-			//console.log('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+new_path);
-			
-			setTimeout(function(){
-				exec('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+chosen_port+' '+req.files.file.name, 
-					function(err,stdout,stderr){
-						if(stderr){console.log(stderr);}
-						else{console.log(stdout);}
+			setTimeout(function(){ //timeout to wait for the virtual machine to spawn
+			//execute the following command in a psuedo terminal
+				exec('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+chosen_port+' '+req.files.file.name, function(err,stdout,stderr){
+						if(stderr){console.log('err:\n'+err+'\nstderr:\n' + stderr+'\nstdout:\n'+stdout);}
+						else{console.log('deploying...\n\n'+stdout);} //display the creation of the containers
+						
+						to_send+='http://'+req.files.file.name.split(".", 1)[0]+'.'+req.host+'.xip.io:'+this_port;
+						
 						var x=1;
-						while (x<parseInt(req.body.instances)){
+						while (x<parseInt(req.body.instances)){ //spawn additional machines if more than one instance was asked for
 							
-							name = req.files.file.name+x.toString;
-							port = allocatePort();
-							filename = req.files.file.name
-							spawn.instances(adressarray, name, port, filename, 
-								function(res){
-									adressarray=res;
+							var name = req.files.file.name.split(".", 1)[0]+x.toString();
+							var outsideport = allocatePort();
+							to_send+= '\n'+'http://'+name+'.'+req.host+'.xip.io:'+this_port;
+							
+							console.log("New instance: "+name+", on: "+outsideport);
+
+							spawn.instances(adressarray, name, port, outsideport, req.files.file.name, 
+								function(array2){
+									adressarray=array2;
 								}
 							);	
-							x=x+1;			
-						}
-					)}
+							x=x+1;
+						} 
+						res.send(to_send);
+					})}
 			,10000);
 		}
 	);
-	
-	}
 	//send back a psuedo website
-	res.send('http://'+req.files.file.name.split(".", 1)[0]+'.'+req.host+'.xip.io:'+this_port);
-	//res.redirect('');
+	//res.send('http://'+req.files.file.name.split(".", 1)[0]+'.'+req.host+'.xip.io:'+this_port+"\n"+to_send);
 });
 
 app.get('/:file(*)', function(req, res, next){
@@ -141,7 +142,6 @@ app.get('/:file(*)', function(req, res, next){
 			res.write(error + "\n");
 			res.end();
 		} else {
-			//res.redirect('http://www.google.se');
 			res.write(file, "binary");
 			res.end();
 		}
