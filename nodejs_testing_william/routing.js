@@ -1,4 +1,5 @@
 var load = require('./loadbalance');
+var exec = require("child_process").exec
 //var ip;
 //var serverip;
 function assignfilename(array, filename, port, callback){
@@ -14,11 +15,28 @@ function assignfilename(array, filename, port, callback){
 
 
 function findactiveip(array, callback){
-	
-			load.balance(array, 
-				function(ip){
-					callback(ip);}
-				);
+	console.log("in findactiveip: "+array.length);
+	if (array.length == 0){
+		exec ('ruby vmcreate', 
+			function(err,stdout,stderr){
+				if(stderr){console.log("error: "+stdout +"\n\n"+stderr);
+					callback(array[0][1]);}
+				else{
+					console.log("Deloyed new vm");
+					//setTimeout(
+					//	function(stdout){
+					callback(stdout.trim());
+					//	}
+					//,10000);
+				}
+			}
+		);
+	} else {
+		callback(array[0][1])}
+		//	load.balance(array, 
+		//		function(ip){
+		//			callback(ip);}
+		//		);
 			
 }
 
