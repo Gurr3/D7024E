@@ -1,9 +1,9 @@
-var load = require('./loadbalance');
+//var load = require('./loadbalance');
 var exec = require("child_process").exec
 //var ip;
 //var serverip;
 function assignfilename(array, filename, port, callback){
-	findactiveip(array, function(ip){
+	loadbalance(array, function(ip){
 		array.push([filename, ip, port]);
 		callback(array);
 	});			
@@ -13,32 +13,38 @@ function assignfilename(array, filename, port, callback){
 	//array.push([filename, ip, port]);
 	//return array;
 
-
-function findactiveip(array, callback){
-	console.log("in findactiveip: "+array.length);
-	if (array.length == 0){
+//returns a lawful good IP
+function loadbalance(array, callback){
+	
+	if (array.length%10 == 0){
+		console.log("Deploying server");
 		exec ('ruby vmcreate', 
 			function(err,stdout,stderr){
-				if(stderr){console.log("error: "+stdout +"\n\n"+stderr);
-					callback(array[0][1]);}
+				if(stderr){
+					console.log("No new server coud be created, using the old servers only");
+					//console.log("error: "+stdout +"\n\n"+stderr);
+					//If array out of bounds occurs after this, function loadbalance threw the error
+					callback(array[array.length-11][1]);}
 				else{
-					console.log("Deloyed new vm");
-					//setTimeout(
-					//	function(stdout){
-					callback(stdout.trim());
-					//	}
-					//,10000);
+					
+					setTimeout(
+						function(){
+							console.log("VM deployed");
+							callback(stdout.trim());
+						}
+					,10000);
 				}
 			}
 		);
 	} else {
-		callback(array[0][1])}
+		callback(array[array.length-1][1]);}
 		//	load.balance(array, 
 		//		function(ip){
 		//			callback(ip);}
 		//		);
 			
 }
+
 
 
 		//callback(array[0][1]);}

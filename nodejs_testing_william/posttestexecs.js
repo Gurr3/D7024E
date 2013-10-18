@@ -94,8 +94,7 @@ app.post('/', function (req, res) { //saves the file given
 	});
 	
 	//update adressarray
-	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0], allocatePort(), 
-		function(array){
+	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0], allocatePort(), function(array){
 			adressarray=array;
 			
 			//dossh with the new arrayaddition
@@ -124,8 +123,8 @@ app.post('/', function (req, res) { //saves the file given
 							x=x+1;
 						} 
 						res.send(to_send);
-					})}
-			,10000);
+					})
+					},10000);
 		}
 	);
 	//send back a psuedo website

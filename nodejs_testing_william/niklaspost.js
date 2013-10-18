@@ -94,48 +94,61 @@ app.post('/', function (req, res) { //saves the file given
 	});
 	
 	//update adressarray
-	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0], allocatePort(), 
+	var outsideport = allocatePort();
+	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0]+outsideport, outsideport, 
 		function(array){
 			adressarray=array;
 			
 			//dossh with the new arrayaddition
-			setTimeout(function(){ //timeout to wait for the virtual machine to spawn
+			 //timeout to wait for the virtual machine to spawn
 			//execute the following command in a psuedo terminal
 				exec('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+chosen_port+' '+req.files.file.name, function(err,stdout,stderr){
 						if(stderr){console.log('err:\n'+err+'\nstderr:\n' + stderr+'\nstdout:\n'+stdout);}
-						else{console.log('deploying...\n\n'+stdout);} //display the creation of the containers
+						else{console.log('deploying...\n\n');}//+stdout);} //display the creation of the containers
 						
 						to_send+='http://'+req.files.file.name.split(".", 1)[0]+'.'+req.host+'.xip.io:'+this_port;
 						
 						var x=1;
-						dowhile(req, x, function(tosend){res.send(to_send+tosend);});
+						if (req.body.instances > 1) {
+							dowhile(to_send, req, x, 
+								function(tosend){
+									res.send(tosend);});
+						} else {res.send(to_send);}
 						
-					})}
-			,10000);
+					})
+				//}
+			//,10000);
 		}
 	);
 	//send back a psuedo website
 	//res.send('http://'+req.files.file.name.split(".", 1)[0]+'.'+req.host+'.xip.io:'+this_port+"\n"+to_send);
 });
-function dowhile(req, x, callback){
-	var to_send="";
+function dowhile(to_send, req, x, callback){
+	
 
-	while (x<parseInt(req.body.instances)){ //spawn additional machines if more than one instance was asked for
-							
-		var name = req.files.file.name.split(".", 1)[0]+x.toString();
-		var outsideport = allocatePort();
+	//while (x<parseInt(req.body.instances)){ //spawn additional machines if more than one instance was asked for
+		var outsideport = allocatePort();					
+		var name = req.files.file.name.split(".", 1)[0]+outsideport;
+		
 		to_send+= '\n'+'http://'+name+'.'+req.host+'.xip.io:'+this_port;
 		
-		console.log("New instance: "+name+", on: "+outsideport);
+		
 
 		spawn.instances(adressarray, name, port, outsideport, req.files.file.name, 
 			function(array2){
 				adressarray=array2;
+					x+=1;
+					console.log("New instance: "+name+", on: "+adressarray[adressarray.length-1][1]+":"+outsideport);
+					if (x < req.body.instances) {
+						dowhile(to_send, req, x, callback);
+					} else {
+						callback(to_send);
+					}
 			}
 		);	
-		x=x+1;
-	} 
-	callback(to_send)
+	//	x=x+1;
+	//} 
+	
 }
 
 app.get('/:file(*)', function(req, res, next){

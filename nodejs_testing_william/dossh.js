@@ -9,7 +9,7 @@ var sq_port= '8080';
 
 	
 task('choosecom', 'choose which computer to deploy on', function (args) {
-	console.log("all: "+ args +" ip: " + args[1]);
+	//console.log("all: "+ args +" ip: " + args[1]);
 	var config;
 	if (args[1]=='130.240.233.93'){
 		config = {'130.240.233.93': {
@@ -29,7 +29,7 @@ task('choosecom', 'choose which computer to deploy on', function (args) {
 
 
 task('deploy', 'deploy the program', function (controller, _, internal_port, external_port, filename) {
-	console.log(internal_port + '     ' + external_port+'         '+ filename);
+	//console.log(internal_port + '     ' + external_port+'         '+ filename);
 	var dockerfile;
 	//var filename;
 	//filename = "helloworldserver.js"
