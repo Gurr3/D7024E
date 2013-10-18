@@ -69,7 +69,7 @@ app.get( '/files',function(req,res){
 //when submitting the form given from get /
 app.post('/', function (req, res) { //saves the file given
 	
-	console.log("working with post /");
+	console.log("Upload received");
 	var to_send = "";
 	//console.log(console.dir(req));  // DEBUG: display available fields
 	//console.log("\n\n "+console.dir(req.files.file.name)+" \n"); //DEBUG: display filename
@@ -95,7 +95,8 @@ app.post('/', function (req, res) { //saves the file given
 	
 	//update adressarray
 	var outsideport = allocatePort();
-	routing.assignfilename(adressarray, req.files.file.name.split(".", 1)[0]+outsideport, outsideport, 
+	var name = req.files.file.name.split(".", 1)[0]+outsideport;
+	routing.assignfilename(adressarray, name, outsideport, 
 		function(array){
 			adressarray=array;
 			
@@ -104,7 +105,7 @@ app.post('/', function (req, res) { //saves the file given
 			//execute the following command in a psuedo terminal
 				exec('nodejs dossh.js choosecom deploy '+adressarray[adressarray.length-1][1]+' '+port+' '+chosen_port+' '+req.files.file.name, function(err,stdout,stderr){
 						if(stderr){console.log('err:\n'+err+'\nstderr:\n' + stderr+'\nstdout:\n'+stdout);}
-						else{console.log('First instance done');}//+stdout);} //display the creation of the containers
+						else{console.log("New instance: "+name+", on: "+adressarray[adressarray.length-1][1]+":"+outsideport);}//+stdout);} //display the creation of the containers
 						
 						to_send+='http://'+req.files.file.name.split(".", 1)[0]+'.'+req.host+'.xip.io:'+this_port;
 						

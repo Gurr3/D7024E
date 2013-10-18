@@ -21,7 +21,8 @@ function loadbalance(array, callback){
 		exec ('ruby vmcreate', 
 			function(err,stdout,stderr){
 				if(stderr){
-					console.log("No new server coud be created, using the old servers only");
+					console.log("No new server could be created, using an existing server");
+					console.log("Might need to terminate server instances");
 					//console.log("error: "+stdout +"\n\n"+stderr);
 					//If array out of bounds occurs after this, function loadbalance threw the error
 					callback(array[array.length-11][1]);}
@@ -29,7 +30,7 @@ function loadbalance(array, callback){
 					
 					setTimeout(
 						function(){
-							console.log("VM deployed");
+							console.log("Server deployed");
 							callback(stdout.trim());
 						}
 					,10000);
