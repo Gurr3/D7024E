@@ -1,0 +1,31 @@
+#!/usr/bin/ruby
+require 'rubygems'
+require 'fog'
+
+@compute = Fog::Compute.new({
+      :provider => "OpenStack",
+      :openstack_username => "student-project-8",
+      :openstack_api_key => "UzgAeos4EO1M",
+      :openstack_auth_url => "http://130.240.233.106:5000/v2.0/tokens",
+      :openstack_tenant => "student-project-8"
+    })
+
+    server = @compute.servers.create :name => "my server",
+                                     :image_ref => "7e74a197-e494-4712-b13c-2a456bf74a43", #"56eed2c2-40b6-4a52-bd55-823457f0ee66", #coreos
+                                     :flavor_ref => "1",
+                                     :security_groups => ["default"],
+                                     :key_name => "nyckel2",
+                                     :user_data => ""
+
+    server.wait_for do
+      ready?
+    end
+
+  # assign floating ip
+  ip = @compute.addresses.find { |ip| ip.instance_id.nil? }
+  if ip.nil?
+      ip = @compute.addresses.create
+  end
+
+  ip.server = server
+puts server.public_ip_address
